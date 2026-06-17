@@ -1,0 +1,10 @@
+{
+  "mask_path": "C:\\Users\\66\\Desktop\\code\\segmentation_report_output\\figures\\fig08_refined_cv_mask.jpg",
+  "distance_path": "C:\\Users\\66\\Desktop\\code\\segmentation_report_output\\figures\\fig09_distance_transform.jpg",
+  "watershed_path": "C:\\Users\\66\\Desktop\\code\\segmentation_report_output\\figures\\fig10_watershed_instances.jpg",
+  "stats_xlsx": "C:\\Users\\66\\Desktop\\code\\segmentation_report_output\\黄色玩偶分水岭实例分割统计.xlsx",
+  "instance_count": 47,
+  "mean_area": 10018.531914893618,
+  "median_area": 7384.0,
+  "total_area": 470871
+}

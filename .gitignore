@@ -1,0 +1,4 @@
+segmentation_report_output/
+__pycache__/
+*.pyc
+~$*.docx
