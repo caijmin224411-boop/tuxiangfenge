@@ -1,0 +1,10 @@
+{
+  "method": "sam_face_prompt",
+  "model": "facebook/sam-vit-base",
+  "prompt_count": 10,
+  "instance_count": 9,
+  "mean_score": 0.8522666666666667,
+  "result_image": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_face_instances\\face_03_instances.jpg",
+  "cutout_contact_sheet": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_face_instances\\face_04_cutouts.jpg",
+  "stats_xlsx": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_face_instances\\face_instance_stats.xlsx"
+}
