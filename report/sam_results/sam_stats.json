@@ -1,0 +1,9 @@
+{
+  "method": "sam_box_prompt",
+  "model": "facebook/sam-vit-base",
+  "prompt_count": 20,
+  "instance_count": 19,
+  "mean_score": 0.8715684210526315,
+  "result_image": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_results\\sam_03_instances.jpg",
+  "stats_xlsx": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_results\\sam_instance_stats.xlsx"
+}

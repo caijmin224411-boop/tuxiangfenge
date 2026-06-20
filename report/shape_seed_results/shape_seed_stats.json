@@ -1,0 +1,10 @@
+{
+  "method": "shape_seed_watershed",
+  "seed_count": 20,
+  "dark_blob_count": 152,
+  "instance_count": 20,
+  "mean_area": 27703.65,
+  "median_area": 22061.0,
+  "result_image": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\shape_seed_results\\shape_06_instances.jpg",
+  "stats_xlsx": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\shape_seed_results\\shape_seed_instance_stats.xlsx"
+}

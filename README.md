@@ -4,11 +4,19 @@
 
 ## 文件结构
 
-- `src/build_segmentation_report.py`：生成基础分割结果图和 Word 实验报告。
-- `src/advanced_watershed_segmentation.py`：使用 OpenCV、scipy、skimage、pandas 进行进一步分水岭实例分割，并导出统计表。
+- `src/build_segmentation_report.py`：生成早期颜色/分水岭 baseline 报告。
+- `src/advanced_watershed_segmentation.py`：使用 OpenCV、scipy、skimage、pandas 进行颜色辅助分水岭实例分割，并导出统计表。
+- `src/shape_seed_watershed.py`：改进版结构种子实例分割，避免单纯按颜色分割。
+- `src/build_shape_seed_report.py`：生成改进版 Word 实验报告。
+- `src/sam_prompt_segmentation.py`：使用 Segment Anything Model（SAM）进行框+点提示实例分割。
+- `src/build_sam_report.py`：生成 SAM 改进版实验报告。
 - `figures/`：原图和实验过程图，包括颜色量化、掩膜、距离变换、分水岭实例分割结果。
-- `report/图像分割实验报告_黄色毛绒玩偶.docx`：最终 Word 实验报告。
-- `report/图像分割实验报告_黄色毛绒玩偶.pdf`：由 Word 导出的 PDF 版本。
+- `report/图像分割实验报告_SAM改进版.docx`：推荐提交的最终 Word 实验报告。
+- `report/图像分割实验报告_SAM改进版.pdf`：推荐提交的最终 PDF。
+- `report/图像分割实验报告_改进版_结构种子.docx`：结构种子方法对照版 Word 报告。
+- `report/图像分割实验报告_改进版_结构种子.pdf`：结构种子方法对照版 PDF。
+- `report/图像分割实验报告_黄色毛绒玩偶.docx`：早期颜色分割 baseline 报告。
+- `report/图像分割实验报告_黄色毛绒玩偶.pdf`：早期 baseline PDF。
 - `report/黄色玩偶分水岭实例分割统计.xlsx`：实例分割统计表。
 
 ## 运行环境
@@ -38,4 +46,4 @@ python src/build_segmentation_report.py
 
 ## 实验结果摘要
 
-优化后的 OpenCV + skimage 分水岭方法得到 47 个实例候选区域。由于真实货架场景中存在遮挡、同色背景和玩偶相互接触，实例候选数量不等于精确商品数量，但能反映进一步分割对粘连区域的拆分效果。
+早期颜色阈值方法在黄色玩偶货架上效果较差，因为玩偶、货架和灯光都处于黄橙色范围。最终版使用 `facebook/sam-vit-base` 的 SAM 框+点提示分割，得到 19 个主要实例候选区域，平均预测置信度约 0.872，比颜色阈值和结构种子近似法更适合作为最终提交版本。
