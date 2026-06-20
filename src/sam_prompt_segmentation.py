@@ -86,8 +86,8 @@ def prompt_points(width, height):
     centers = [
         (0.23, 0.40), (0.56, 0.40), (0.05, 0.45), (0.91, 0.52),
         (0.39, 0.52), (0.55, 0.52), (0.69, 0.52),
-        (0.21, 0.58), (0.35, 0.58), (0.49, 0.58), (0.60, 0.58),
-        (0.72, 0.58), (0.82, 0.58), (0.93, 0.58),
+        (0.21, 0.53), (0.35, 0.53), (0.49, 0.53), (0.60, 0.53),
+        (0.72, 0.53), (0.82, 0.53), (0.93, 0.53),
         (0.10, 0.71), (0.27, 0.71), (0.43, 0.71),
         (0.58, 0.71), (0.74, 0.71), (0.90, 0.71),
     ]
@@ -153,6 +153,13 @@ def suppress_overlaps(masks, scores):
         mask = masks[idx] & ~assigned
         if mask.sum() < 450:
             continue
+        ys, xs = np.nonzero(mask)
+        bw = int(xs.max() - xs.min() + 1)
+        bh = int(ys.max() - ys.min() + 1)
+        aspect = bw / max(1, bh)
+        # Drop long shelf strips; plush instances are not extremely horizontal.
+        if aspect > 3.2 and bh < 90:
+            continue
         final[idx] = mask
         assigned |= mask
     return final
@@ -188,6 +195,8 @@ def draw_masks(img, masks, scores):
             continue
         ys, xs = np.nonzero(mask)
         x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
+        if (x1 - x0 + 1) / max(1, (y1 - y0 + 1)) > 3.2 and (y1 - y0 + 1) < 90:
+            continue
         color = tuple(int(v) for v in palette[(idx - 1) % len(palette)])
         draw.rectangle([x0, y0, x1, y1], outline=color, width=4)
         draw.text((x0 + 3, max(2, y0 - 24)), str(idx), fill=(0, 0, 0), font=FONT_SMALL)
@@ -211,6 +220,62 @@ def draw_masks(img, masks, scores):
     return add_title(pil, "SAM 框提示实例分割结果"), pd.DataFrame(rows)
 
 
+def save_cutouts(img, masks, scores):
+    crops_dir = OUT_DIR / "crops"
+    crops_dir.mkdir(parents=True, exist_ok=True)
+    for old in crops_dir.glob("sam_crop_*.png"):
+        old.unlink()
+
+    rgba = np.array(img.convert("RGBA"))
+    rows = []
+    thumbs = []
+    for idx, mask in enumerate(masks, start=1):
+        area = int(mask.sum())
+        if area < 450:
+            continue
+        ys, xs = np.nonzero(mask)
+        x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
+        if (x1 - x0 + 1) / max(1, (y1 - y0 + 1)) > 3.2 and (y1 - y0 + 1) < 90:
+            continue
+        pad = 10
+        x0p, y0p = max(0, x0 - pad), max(0, y0 - pad)
+        x1p, y1p = min(img.width - 1, x1 + pad), min(img.height - 1, y1 + pad)
+
+        crop = rgba[y0p : y1p + 1, x0p : x1p + 1].copy()
+        alpha = np.zeros(crop.shape[:2], dtype=np.uint8)
+        local_mask = mask[y0p : y1p + 1, x0p : x1p + 1]
+        alpha[local_mask] = 255
+        crop[:, :, 3] = alpha
+
+        path = crops_dir / f"sam_crop_{idx:02d}.png"
+        Image.fromarray(crop).save(path)
+        rows.append({"实例编号": idx, "裁剪文件": str(path), "面积_像素": area, "SAM置信度": scores[idx - 1]})
+
+        thumb = Image.fromarray(crop)
+        thumb.thumbnail((150, 150), Image.Resampling.LANCZOS)
+        tile = Image.new("RGBA", (170, 190), (255, 255, 255, 255))
+        tile.alpha_composite(thumb, ((170 - thumb.width) // 2, 18))
+        draw = ImageDraw.Draw(tile)
+        draw.text((8, 162), f"{idx:02d}", fill=(20, 20, 20), font=FONT_SMALL)
+        thumbs.append(tile.convert("RGB"))
+
+    if thumbs:
+        cols = 5
+        rows_count = (len(thumbs) + cols - 1) // cols
+        sheet = Image.new("RGB", (cols * 170, rows_count * 190 + 56), "white")
+        draw = ImageDraw.Draw(sheet)
+        draw.rectangle([0, 0, sheet.width, 56], fill=(24, 38, 60))
+        draw.text((18, 11), "SAM 分割实例透明裁剪总览", fill="white", font=FONT)
+        for i, tile in enumerate(thumbs):
+            x = (i % cols) * 170
+            y = 56 + (i // cols) * 190
+            sheet.paste(tile, (x, y))
+        sheet.save(OUT_DIR / "sam_04_cutout_contact_sheet.jpg", quality=95)
+
+    pd.DataFrame(rows).to_excel(OUT_DIR / "sam_cutout_files.xlsx", index=False)
+    return len(rows), str(crops_dir)
+
+
 def main():
     img = resize_to_width(Image.open(SRC_IMAGE).convert("RGB"), 1200)
     boxes = prompt_boxes(img.width, img.height)
@@ -220,14 +285,18 @@ def main():
     masks = suppress_overlaps(masks, scores)
     result, df = draw_masks(img, masks, scores)
     result.save(OUT_DIR / "sam_03_instances.jpg", quality=95)
+    cutout_count, crops_dir = save_cutouts(img, masks, scores)
     df.to_excel(OUT_DIR / "sam_instance_stats.xlsx", index=False)
     stats = {
         "method": "sam_box_prompt",
         "model": "facebook/sam-vit-base",
         "prompt_count": len(boxes),
         "instance_count": int(len(df)),
+        "cutout_count": int(cutout_count),
+        "crops_dir": crops_dir,
         "mean_score": float(df["SAM置信度"].mean()) if len(df) else 0,
         "result_image": str(OUT_DIR / "sam_03_instances.jpg"),
+        "cutout_contact_sheet": str(OUT_DIR / "sam_04_cutout_contact_sheet.jpg"),
         "stats_xlsx": str(OUT_DIR / "sam_instance_stats.xlsx"),
     }
     (OUT_DIR / "sam_stats.json").write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")

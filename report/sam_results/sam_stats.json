@@ -2,8 +2,11 @@
   "method": "sam_box_prompt",
   "model": "facebook/sam-vit-base",
   "prompt_count": 20,
-  "instance_count": 19,
-  "mean_score": 0.8715684210526315,
+  "instance_count": 17,
+  "cutout_count": 17,
+  "crops_dir": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_results\\crops",
+  "mean_score": 0.8831294117647059,
   "result_image": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_results\\sam_03_instances.jpg",
+  "cutout_contact_sheet": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_results\\sam_04_cutout_contact_sheet.jpg",
   "stats_xlsx": "C:\\Users\\66\\Desktop\\tuxiangfenge\\report\\sam_results\\sam_instance_stats.xlsx"
 }
